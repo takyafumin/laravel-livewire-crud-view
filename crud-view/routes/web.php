@@ -1,7 +1,7 @@
 <?php
 
-use App\Livewire\HomePage;
+use App\Livewire\CrudDiagram;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', HomePage::class);
+Route::get('/', CrudDiagram::class);
 
