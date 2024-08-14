@@ -12,38 +12,46 @@ class CrudDiagram extends Component
     /**
      * @var Collection<CrudElementDto>|null $entities エンティティのリスト
      */
-    private ?Collection $entities = null;
-
+    public ?Collection $entities = null;
     public ?Collection $functions = null;
     public ?Collection $models    = null;
-    public $json = null;
-    public $text = 'hoge';
 
     public function mount()
     {
-        $this->functions = collect(['A', 'B', 'C', 'D', 'E'])
-            ->map(fn (string $f) => "機能{$f}");
-        $this->models    = collect(range(1, 10))
-            ->map(fn (int $i) => "Model-{$i}");
+        $allFunctions = collect(
+            [
+            '機能A' => ['level' => 1], '機能A-1' => ['level' => 2], '機能A-2' => ['level' => 2], '機能A-3' => ['level' => 2],
+            '機能B' => ['level' => 1], '機能B-1' => ['level' => 2], '機能B-2' => ['level' => 2], '機能B-3' => ['level' => 2],
+            '機能C' => ['level' => 1], '機能C-1' => ['level' => 2], '機能C-2' => ['level' => 2], '機能C-3' => ['level' => 2],
+            '機能D' => ['level' => 1], '機能D-1' => ['level' => 2], '機能D-2' => ['level' => 2], '機能D-3' => ['level' => 2],
+            '機能E' => ['level' => 1], '機能E-1' => ['level' => 2], '機能E-2' => ['level' => 2], '機能E-3' => ['level' => 2],
+            ]
+        );
+        $allModels    = collect(range(1, 10))->map(fn (int $i) => "Model-{$i}");
+
+
+        $this->functions = $allFunctions->filter(fn ($v, $k) => $v['level'] === 1);
+        $this->models    = $allModels;
 
         // サンプルのエンティティを定義
         $this->entities = collect();
         $this->functions->each(
-            function (string $f) {
+            function (array $f) {
                 $this->models->each(
                     function (string $m) use ($f) {
+                        $id = Str::uuid();
                         $element = new CrudElementDto(
-                            function_name: $f,
+                            id: $id,
+                            function_name: key($f),
                             model_name: $m,
                             crud: 'CRUD'
                         );
-                        $this->entities->put((string) Str::uuid(), $element);
+                        // $this->entities->put((string) Str::uuid(), $element->toArray());
+                        $this->entities->put(key($f) . '---' . $m, $element);
                     }
                 );
             }
         );
-
-        $this->json = serialize($this->entities);
     }
 
     public function render()
@@ -51,8 +59,23 @@ class CrudDiagram extends Component
         return view('livewire.crud-diagram');
     }
 
-    public function clickRow()
+    public function clickRow(string $function_name)
     {
+        // dd($function_name);
+        // $this->functions->each(
+        //     function (string $f) use ($function_name) {
+        //         $this->models->each(
+        //             function (string $m) use ($f, $function_name) {
+        //                 $element = new CrudElementDto(
+        //                     function_name: $f,
+        //                     model_name: $m,
+        //                     crud: $f === $function_name ? '更新' : 'CRUD'
+        //                 );
+        //                 $this->entities->put($f . '---' . $m, $element);
+        //             }
+        //         );
+        //     }
+        // );
         $this->dispatch('click-row');
     }
 
@@ -63,25 +86,12 @@ class CrudDiagram extends Component
      * @param  string $model_name    モデル名
      * @return string CRUD
      */
-    public function getCrudValue(string $function_name, string $model_name): string
+    public function getCrudValueProperty(string $function_name, string $model_name): string
     {
         return $this->entities
             ->filter(fn (CrudElementDto $dto) => $dto->function_name === $function_name && $dto->model_name === $model_name)
             ->map(fn (CrudElementDto $dto) => $dto->crud)
             ->first() ?? '';
-    }
-
-    public function openRow(string $function_name): void
-    {
-        // CRUDデータのデータモデルと保持方法を再検討する
-        //  - row: 機能名
-        //    - column: モデル名(n件)
-        //  - row: モデル名
-        //    - column: 機能名(n件)
-        $list = unserialize($this->json);
-        $function_name = $list
-            ->filter(fn (CrudElementDto $dto) => $dto->function_name === $function_name)
-            ->first();
     }
 }
 

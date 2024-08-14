@@ -1,4 +1,8 @@
-@props(['entities' => $entities])
+@props([
+    'functions' => [],
+    'models' => [],
+    'entities' => [],
+])
 
 <table class="min-w-full divide-y divide-gray-200">
     <thead class="bg-gray-50">
@@ -6,20 +10,24 @@
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Name
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Description
-            </th>
+            @foreach ($models as $m)
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {{ $m }}
+                </th>
+            @endforeach
         </tr>
     </thead>
     <tbody class="bg-white divide-y divide-gray-200">
-        @foreach ($entities as $entity)
-            <tr wire:click='clickRow(1)'>
+        @foreach ($functions as $key => $f)
+            <tr wire:click="clickRow('{{ $key }}')">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{ $entity['name'] }}</div>
+                    <div class="text-sm font-medium text-gray-900">{{ $key }}</div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ $entity['description'] }}</div>
-                </td>
+                @foreach ($models as $m)
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ $entities[key($f) . '---' . $m]->crud }}</div>
+                    </td>
+                @endforeach
             </tr>
         @endforeach
     </tbody>
